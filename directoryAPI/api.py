@@ -1,13 +1,13 @@
 import os, stat
-from flask import Flask, session
+from flask import Flask, session, abort, make_response
 from flask.json import jsonify
 
 
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = b'randomkey'
 
 root = None
-cache = {}
+cache = {} 
 
 
 #------------------ routes
@@ -29,7 +29,7 @@ def set_root(root_path):
         return "Bad root path"
 
 
-    return "200"
+    return cache, 200
 
 
 #route for current directory (path is empty)
@@ -39,9 +39,9 @@ def curr_directory():
     cache = session.get('cache')
 
     if not root:
-        return "Need to set root directory first"
+        abort(404)
 
-    return jsonify(cache)
+    return jsonify(cache), 200
 
 #create REST endpoint for getting directories / files
 @app.route("/<path:dir_path>", methods = ['GET'])
@@ -50,28 +50,30 @@ def directory(dir_path):
     cache = session.get('cache')
 
     if not root:
-        return "Need to set root directory first"
+        abort(404)
 
     # walk down the path
     path = dir_path.split("/")
     res = cache
 
-    print(cache)
-    print(path)
     for item in path:
-        print(item)
         if item in res:
             #found directory, so path down to subdir
             res = res[item]
         elif item in res['contents']:
             #found file, so return
             res = res['contents']
-            return jsonify(res)
+            return jsonify(res), 200
         else:
-            return "Bad path"
+            abort(404)
 
     return jsonify(res)
 
+
+#error handling
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({"error": "Bad path!"}), 404)
 
 #---------------------------- helper functions
 
@@ -113,5 +115,6 @@ def readFile(path, entry):
 
 
 
+
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
