@@ -55,12 +55,13 @@ def directory(dir_path):
     # walk down the path
     path = dir_path.split("/")
     res = cache
-    print(path)
-    for directory in path:
-        if directory in res:
-            res = res[directory]
-        else:
-            return "Bad path"
+
+    for item in path:
+        print(res)
+        if item in res:
+            res = res[item]
+        # else:
+            # return "Bad path"
 
     return jsonify(res)
 
