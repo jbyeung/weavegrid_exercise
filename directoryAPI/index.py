@@ -56,12 +56,19 @@ def directory(dir_path):
     path = dir_path.split("/")
     res = cache
 
+    print(cache)
+    print(path)
     for item in path:
-        print(res)
+        print(item)
         if item in res:
+            #found directory, so path down to subdir
             res = res[item]
-        # else:
-            # return "Bad path"
+        elif item in res['contents']:
+            #found file, so return
+            res = res['contents']
+            return jsonify(res)
+        else:
+            return "Bad path"
 
     return jsonify(res)
 
